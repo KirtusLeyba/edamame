@@ -1,56 +1,41 @@
 package app
 
 import (
-	"edamame/core/networks"
-	"strconv"
-
+	// "edamame/core/networks"
+	// "strconv"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func Execute() {
+func Execute(defaultWidth, defaultHeight int32) {
 
-    g := networks.Create_rand_network(4, 1000, 0.0025, false)
-    g_transform := Create_network_transform(&g, 1717)
+	initWindow(defaultWidth, defaultHeight)
+	defer rl.CloseWindow()
 
-    var width int32 = 4096
-    var height int32 = 2160
+	mainLoop()
 
-    rl.InitWindow(width, height, "test")
-    defer rl.CloseWindow()
+}
 
-    rl.SetTargetFPS(60)
+func updateStep(){
 
-    var iter int = 0
+}
 
-    for !rl.WindowShouldClose(){
+func drawStep(){
+	rl.BeginDrawing()
 
-        if(iter < 1000){
-            Spring_update(&g_transform, &g, 0.005, 0.01, 0.01)
-        } else if (iter == 1000) {
-            rl.TakeScreenshot("./test.png")
-        }
-        cx, cy := Get_COM(&g_transform)
+	drawBackground()
+	drawStats()
 
-        rl.BeginDrawing()
-        rl.ClearBackground(rl.Black)
-        for i := range g.Node_count {
-            for j := range g.Adjacencies[g.Node_list[i]] {
+	rl.EndDrawing()
+}
 
-                other_node_idx, _ := strconv.Atoi(g.Adjacencies[g.Node_list[i]][j].Name)
+func mainLoop(){
+	for !rl.WindowShouldClose() {
+		updateStep()
+		drawStep()
+	}
+}
 
-                rl.DrawLine(int32(g_transform.Node_xs[i] - cx) + width/2, int32(g_transform.Node_ys[i] - cy) + height/2,
-                            int32(g_transform.Node_xs[other_node_idx] - cx) + width/2, int32(g_transform.Node_ys[other_node_idx] - cy) + height/2, rl.Gray)
-            }
-
-        }
-        for i := range g.Node_count {
-            rl.DrawCircle(int32(g_transform.Node_xs[i] - cx) + width/2, int32(g_transform.Node_ys[i] - cy) + height/2, 8.0, rl.Black)
-            rl.DrawCircle(int32(g_transform.Node_xs[i] - cx) + width/2, int32(g_transform.Node_ys[i] - cy) + height/2, 6.0, rl.Blue)
-        }
-
-        rl.EndDrawing()
-
-        iter++
-    }
-
+func initWindow(width, height int32){
+	rl.SetConfigFlags(rl.FlagWindowResizable)
+	rl.InitWindow(width, height, "edamame")
 }

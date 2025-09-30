@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-    app.Execute()
+	var defaultWidth int32 = 800
+	var defaultHeight int32 = 600
+	app.Execute(defaultWidth, defaultHeight)
 }
