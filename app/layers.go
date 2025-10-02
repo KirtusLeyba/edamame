@@ -10,7 +10,7 @@ type Vec2Di struct {
 }
 
 type Layer interface {
-	Attach()
+	Attach(*[]Layer)
 	Detach()
 	OnEvent()
 	OnUpdate()

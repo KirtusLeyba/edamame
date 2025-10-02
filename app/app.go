@@ -15,12 +15,14 @@ func Execute(defaultWidth, defaultHeight int32) {
 
 	//set up default layers
 	var layerStack []Layer
+
+	//ui layer
 	var uiLayer UILayer
 	uiLayer.SetTransform(Vec2Df32{0.0, 0.0}, Vec2Df32{1.0, 1.0})
-	layerStack = pushLayer(layerStack, &uiLayer)
+	PushLayer(&layerStack, &uiLayer)
 
-	mainLoop(layerStack)
-	exitApp(layerStack)
+	mainLoop(&layerStack)
+	exitApp(&layerStack)
 }
 
 func initWindow(width, height int32){
@@ -28,55 +30,54 @@ func initWindow(width, height int32){
 	rl.InitWindow(width, height, "edamame")
 }
 
-func mainLoop(layerStack []Layer){
+func mainLoop(layerStack *[]Layer){
 	for !rl.WindowShouldClose() {
 		update(layerStack)
 		render(layerStack)
 	}
 }
 
-func pushLayer(layerStack []Layer, lay Layer) []Layer{
-	layerStack = append(layerStack, lay)
-	lay.Attach()
-	return layerStack
+func PushLayer(layerStack *[]Layer, lay Layer){
+	*layerStack = append(*layerStack, lay)
+	lay.Attach(layerStack)
 }
 
-func popLayer(layerStack []Layer) ([]Layer, Layer, error){
+func PopLayer(layerStack *[]Layer) (*[]Layer, Layer, error){
 
-	if(len(layerStack) == 0){
+	if(len(*layerStack) == 0){
 		return layerStack, nil, errors.New("cannot pop layer from an empty stack")
 	}
 
-	lastLayer := layerStack[len(layerStack) - 1]
-	layerStack = layerStack[:len(layerStack) - 1]
+	lastLayer := (*layerStack)[len(*layerStack) - 1]
+	*layerStack = (*layerStack)[:len(*layerStack) - 1]
 	lastLayer.Detach()
 	return layerStack, lastLayer, nil
 }
 
-func update(layerStack []Layer){
-	for _, layer := range layerStack {
+func update(layerStack *[]Layer){
+	for _, layer := range *layerStack {
 		layer.OnUpdate()
 	}
 }
 
-func render(layerStack []Layer){
+func render(layerStack *[]Layer){
 	backgroundColor := rl.Color{57, 56, 84, 255}
 
 
 	rl.BeginDrawing()
 	rl.ClearBackground(backgroundColor)
 
-	for _, layer := range layerStack {
+	for _, layer := range *layerStack {
 		layer.OnRender()
 	}
 
 	rl.EndDrawing()
 }
 
-func exitApp(layerStack []Layer){
-	for len(layerStack) > 0 {
+func exitApp(layerStack *[]Layer){
+	for len(*layerStack) > 0 {
 		var err error
-		layerStack, _, err = popLayer(layerStack)
+		layerStack, _, err = PopLayer(layerStack)
 		if(err != nil){
 			panic(fmt.Sprintf("%v\n", err))
 		}
