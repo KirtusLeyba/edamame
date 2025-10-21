@@ -2,116 +2,93 @@ package networks
 
 import (
 	"errors"
-	"math/rand"
-	"strconv"
 )
 
+type RGBA struct {
+	R, G, B, A uint8
+}
 type Node struct {
-	Name string
+	Name         string
+	X, Y, Vx, Vy, Radius float32
+	NodeColor    RGBA
+	BorderColor  RGBA
+	NameColor    RGBA
+}
+type Edge struct {
+	NodeAName string
+	NodeBName string
+	Width float32
+}
+
+func SortedEdge(a, b string) Edge {
+	if a < b {
+		return Edge{NodeAName: a,
+					NodeBName: b}
+	}
+	return Edge{NodeAName: b, NodeBName: a}
+}
+
+func (a Node) Equal(b Node) bool {
+	return a.Name == b.Name
+}
+func (a Edge) Equal(b Edge) bool {
+	return (a.NodeAName == b.NodeAName && a.NodeBName == b.NodeBName)
 }
 
 type Network struct {
-	Node_count  uint
-	Node_list   []Node
-	Adjacencies map[Node][]Node
-	Directed    bool
+	NodeCount, EdgeCount uint
+	Nodes                []Node
+	Edges                []Edge
+	NodeSet              map[string]uint
+	EdgeSet              map[string]uint
+	Adjacencies          map[string][]string
 }
 
-func Create_empty_network(directed bool) Network {
-	net := Network{0, make([]Node, 0), make(map[Node][]Node), directed}
-	return net
+func NewNetwork() *Network {
+	return &Network{NodeCount: 0, EdgeCount: 0,
+		NodeSet:     make(map[string]uint),
+		EdgeSet:     make(map[string]uint),
+		Adjacencies: make(map[string][]string)}
 }
 
-func Add_node(net *Network, name string) error {
-	_, ok := net.Adjacencies[Node{name}]
-	if ok {
-		return errors.New("attempted to add node named " + name + " twice.")
+func (g Network) ContainsNode(aName string) bool {
+	_, exists := g.NodeSet[aName]
+	return exists
+}
+
+func (g Network) ContainsEdge(e Edge) bool {
+	edgeName := e.NodeAName + "," + e.NodeBName
+	_, exists := g.EdgeSet[edgeName]
+	return exists
+}
+
+func (g *Network) AddNode(node Node) error {
+	if g.ContainsNode(node.Name) {
+		return errors.New("attempted to add node named " + node.Name + " twice.")
 	}
-
-	new_node := Node{name}
-	net.Node_list = append(net.Node_list, new_node)
-	net.Adjacencies[new_node] = make([]Node, 0)
-	net.Node_count++
+	g.Nodes = append(g.Nodes, node)
+	g.NodeSet[node.Name] = uint(len(g.Nodes) - 1)
+	g.Adjacencies[node.Name] = make([]string, 0)
+	g.NodeCount++
 	return nil
 }
 
-func Has_node(net *Network, name string) bool {
-	_, ok := net.Adjacencies[Node{name}]
-	return ok
+func (g *Network) setAdjacent(a, b string){
+	g.Adjacencies[a] = append(g.Adjacencies[a], b)
+	g.Adjacencies[b] = append(g.Adjacencies[b], a)
 }
 
-func Has_edge(net *Network, node_a_name, node_b_name string) bool {
-	if !Has_node(net, node_a_name) {
-		return false
+func (g *Network) AddEdge(e Edge) error {
+	edgeName := e.NodeAName + "," + e.NodeBName
+	if g.ContainsEdge(e) {
+		return errors.New("Attempted to add the edge (" + e.NodeAName + "," + e.NodeBName + ") twice!")
 	}
-	if !Has_node(net, node_b_name) {
-		return false
+	if(!g.ContainsNode(e.NodeAName) || !g.ContainsNode(e.NodeBName)){
+		return errors.New("Cannot add edge between nodes that do not exist!")
 	}
-	for _, node := range net.Adjacencies[Node{node_a_name}] {
-		if node.Name == node_b_name {
-			return true
-		}
-	}
-	return false
-}
-
-func Add_edge(net *Network, node_a_name, node_b_name string) error {
-	if !Has_node(net, node_a_name) {
-		return errors.New("Cannot add edge with nonexistant node " + node_a_name)
-	}
-	if !Has_node(net, node_b_name) {
-		return errors.New("Cannot add edge with nonexistant node " + node_b_name)
-	}
-
-	if net.Directed {
-		if !Has_edge(net, node_a_name, node_b_name) {
-			net.Adjacencies[Node{node_a_name}] = append(net.Adjacencies[Node{node_a_name}], Node{node_b_name})
-		} else {
-			return errors.New("Edge from " + node_a_name + " and " + node_b_name + " already exists.")
-		}
-	} else {
-		if !Has_edge(net, node_a_name, node_b_name) {
-			net.Adjacencies[Node{node_a_name}] = append(net.Adjacencies[Node{node_a_name}], Node{node_b_name})
-		} else {
-			return errors.New("Edge between " + node_a_name + " and " + node_b_name + " already exists.")
-		}
-		if !Has_edge(net, node_b_name, node_a_name) {
-			net.Adjacencies[Node{node_b_name}] = append(net.Adjacencies[Node{node_b_name}], Node{node_a_name})
-		} else {
-			return errors.New("Edge between " + node_b_name + " and " + node_a_name + " already exists.")
-		}
-	}
+	g.Edges = append(g.Edges, e)
+	g.EdgeSet[edgeName] = uint(len(g.Edges) - 1)
+	g.setAdjacent(e.NodeAName, e.NodeBName)
+	g.EdgeCount++
 	return nil
-}
-
-func Create_rand_network(seed int64, num_nodes int, edge_chance float32, directed bool) Network {
-	local_rng := rand.New(rand.NewSource(seed))
-
-	g := Create_empty_network(directed)
-
-	for i := range num_nodes {
-		Add_node(&g, strconv.Itoa(i))
-	}
-
-	if directed {
-		for i := range num_nodes {
-			for j := range num_nodes {
-				if i == j {
-					continue
-				}
-				if local_rng.Float32() < edge_chance {
-					Add_edge(&g, strconv.Itoa(i), strconv.Itoa(j))
-				}
-			}
-		}
-	} else {
-		for i := range num_nodes {
-			for j := i + 1; j < num_nodes; j++ {
-				if local_rng.Float32() < edge_chance {
-					Add_edge(&g, strconv.Itoa(i), strconv.Itoa(j))
-				}
-			}
-		}
-	}
-	return g
 }

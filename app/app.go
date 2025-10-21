@@ -1,11 +1,9 @@
 package app
 
 import (
-	// "edamame/core/networks"
+	ednet "edamame/core/networks"
 	// "strconv"
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"errors"
-	"fmt"
 )
 
 func Execute(defaultWidth, defaultHeight int32) {
@@ -13,16 +11,25 @@ func Execute(defaultWidth, defaultHeight int32) {
 	initWindow(defaultWidth, defaultHeight)
 	defer rl.CloseWindow()
 
-	//set up default layers
-	var layerStack []Layer
+	//set up layer tree
+	//with a ui layer as root
+	var ui UILayer
+	ui.SetTransform(Vec2Df32{0.0, 0.0}, Vec2Df32{1.0, 1.0})
+	root := NewRootLayerTreeNode(&ui)
 
-	//ui layer
-	var uiLayer UILayer
-	uiLayer.SetTransform(Vec2Df32{0.0, 0.0}, Vec2Df32{1.0, 1.0})
-	PushLayer(&layerStack, &uiLayer)
+	//add the netviz layer
+	var netLayer  NetworkLayer
+	netLayer.SetTransform(Vec2Df32{0.1, 0.1}, Vec2Df32{0.8, 0.8})
+	netLayer.EquilCon = 50.0
+	netLayer.EquilDis = 4.0
+	netLayer.SpringConstant = 3.0
+	netLayer.TimeStep = 0.1
+	netLayer.Friction = 0.001
+	netLayer.Net = ednet.NewNetwork()
+	root.AddChild(&netLayer)
 
-	mainLoop(&layerStack)
-	exitApp(&layerStack)
+	mainLoop(root)
+	exitApp(root)
 }
 
 func initWindow(width, height int32){
@@ -30,56 +37,18 @@ func initWindow(width, height int32){
 	rl.InitWindow(width, height, "edamame")
 }
 
-func mainLoop(layerStack *[]Layer){
+func mainLoop(root *LayerTreeNode){
 	for !rl.WindowShouldClose() {
-		update(layerStack)
-		render(layerStack)
+		root.UpdateTree()
+
+		backgroundColor := rl.Color{57, 56, 84, 255}
+		rl.BeginDrawing()
+		rl.ClearBackground(backgroundColor)
+		root.RenderTree()
+		rl.EndDrawing()
 	}
 }
 
-func PushLayer(layerStack *[]Layer, lay Layer){
-	*layerStack = append(*layerStack, lay)
-	lay.Attach(layerStack)
-}
-
-func PopLayer(layerStack *[]Layer) (*[]Layer, Layer, error){
-
-	if(len(*layerStack) == 0){
-		return layerStack, nil, errors.New("cannot pop layer from an empty stack")
-	}
-
-	lastLayer := (*layerStack)[len(*layerStack) - 1]
-	*layerStack = (*layerStack)[:len(*layerStack) - 1]
-	lastLayer.Detach()
-	return layerStack, lastLayer, nil
-}
-
-func update(layerStack *[]Layer){
-	for _, layer := range *layerStack {
-		layer.OnUpdate()
-	}
-}
-
-func render(layerStack *[]Layer){
-	backgroundColor := rl.Color{57, 56, 84, 255}
-
-
-	rl.BeginDrawing()
-	rl.ClearBackground(backgroundColor)
-
-	for _, layer := range *layerStack {
-		layer.OnRender()
-	}
-
-	rl.EndDrawing()
-}
-
-func exitApp(layerStack *[]Layer){
-	for len(*layerStack) > 0 {
-		var err error
-		layerStack, _, err = PopLayer(layerStack)
-		if(err != nil){
-			panic(fmt.Sprintf("%v\n", err))
-		}
-	}
+func exitApp(root *LayerTreeNode){
+	root.Remove()
 }

@@ -10,27 +10,35 @@ import (
 )
 
 type FileLoadLayer struct {
-	origin        Vec2Df32
-	size          Vec2Df32
+	origin Vec2Df32
+	size   Vec2Df32
+	ltNode *LayerTreeNode
+
 	scrollVal     int32
-	layerStack    *[]Layer
 	workingDir    string
 	fileEntries   []os.DirEntry
 	selectedEntry int
 	entrySize     int
-	fileToLoad string
-	callback func(fname string)
+	fileToLoad    string
+	callback      func(fname string)
 }
 
-func (f *FileLoadLayer) Attach(layerStack *[]Layer) {
-	f.layerStack = layerStack
+func (f *FileLoadLayer) OnCreate() {
 	f.scrollVal = 0
 	f.workingDir = "./"
 	f.selectedEntry = 0
 	f.entrySize = 32
+	log.Printf("FileLoadLayer Layer created with unique id: %v\n", f.ltNode.UniqueID)
 }
 
-func (f *FileLoadLayer) Detach()  {}
+func (f *FileLoadLayer) OnRemove() {
+	log.Printf("FileLoadLayer Layer removed with unique id: %v\n", f.ltNode.UniqueID)
+}
+
+func (f *FileLoadLayer) SetLTNode(ltNode *LayerTreeNode){
+	f.ltNode = ltNode
+}
+
 func (f *FileLoadLayer) OnEvent() {}
 func (f *FileLoadLayer) OnUpdate() {
 	f.updateFileEntries()
@@ -41,17 +49,16 @@ func (f *FileLoadLayer) OnUpdate() {
 	}
 }
 func (f *FileLoadLayer) OnRender() {
-
-	screenWidth := float32(rl.GetScreenWidth())
-	screenHeight := float32(rl.GetScreenHeight())
-	f.drawFileDialog(screenWidth, screenHeight)
-
+	f.drawFileDialog()
 }
 func (f *FileLoadLayer) SetTransform(origin, size Vec2Df32) {
 	f.origin = origin
 	f.size = size
 }
-func (f *FileLoadLayer) SetCallback(c func(fname string)){
+func (f *FileLoadLayer) GetTransform() (Vec2Df32, Vec2Df32){
+	return f.origin, f.size
+}
+func (f *FileLoadLayer) SetCallback(c func(fname string)) {
 	f.callback = c
 }
 
@@ -67,12 +74,15 @@ func (f *FileLoadLayer) updateFileEntries() {
 	}
 }
 
-func (f *FileLoadLayer) drawFileDialog(screenWidth, screenHeight float32) {
+func (f *FileLoadLayer) drawFileDialog() {
+
+	frame := f.ltNode.GetFrame()
+
 	//draw the file dialog
-	fileDialogRect := rl.Rectangle{(f.origin.x * screenWidth),
-		(f.origin.y * screenHeight),
-		(f.size.x * screenWidth),
-		(f.size.y * screenHeight)}
+	fileDialogRect := rl.Rectangle{(frame.X),
+								   (frame.Y),
+								   (frame.Width),
+		                           (frame.Height)}
 	fileDialogColor := rl.NewColor(77, 77, 77, 200)
 	rl.DrawRectangle(int32(fileDialogRect.X),
 		int32(fileDialogRect.Y),
@@ -81,12 +91,12 @@ func (f *FileLoadLayer) drawFileDialog(screenWidth, screenHeight float32) {
 
 	//draw the scroll bar
 	var sliderOrigin, sliderSize Vec2Df32
-	sliderOrigin.x = (f.origin.x * screenWidth) + (f.size.x * screenWidth)
-	sliderOrigin.y = (f.origin.y * screenHeight)
-	sliderSize.x = 0.02 * fileDialogRect.Width
-	sliderSize.y = fileDialogRect.Height
+	sliderOrigin.X = frame.X + frame.Width
+	sliderOrigin.Y = frame.Y
+	sliderSize.X = 0.02 * fileDialogRect.Width
+	sliderSize.Y = fileDialogRect.Height
 
-	scrollBarBounds := rl.Rectangle{sliderOrigin.x, sliderOrigin.y, sliderSize.x, sliderSize.y}
+	scrollBarBounds := rl.Rectangle{sliderOrigin.X, sliderOrigin.Y, sliderSize.X, sliderSize.Y}
 	f.scrollVal = gui.ScrollBar(scrollBarBounds, f.scrollVal, 0, int32(len(f.fileEntries)+1))
 
 	//draw the selected entry rectangle
@@ -94,7 +104,7 @@ func (f *FileLoadLayer) drawFileDialog(screenWidth, screenHeight float32) {
 	if idx != -1 {
 		selectedEntryColor := rl.NewColor(200, 200, 200, 200)
 		selectedEntryRect := rl.Rectangle{fileDialogRect.X,
-										  fileDialogRect.Y+float32((idx - int(f.scrollVal))*f.entrySize),
+			fileDialogRect.Y + float32((idx-int(f.scrollVal))*f.entrySize),
 			fileDialogRect.Width, float32(f.entrySize)}
 		rl.DrawRectangle(int32(selectedEntryRect.X),
 			int32(selectedEntryRect.Y),
@@ -134,13 +144,13 @@ func (f *FileLoadLayer) drawFileDialog(screenWidth, screenHeight float32) {
 func (f *FileLoadLayer) updateSelectedEntry() {
 	var mouseVec rl.Vector2 = rl.GetMousePosition()
 
-	screenWidth := float32(rl.GetScreenWidth())
-	screenHeight := float32(rl.GetScreenHeight())
+	frame := f.ltNode.GetFrame()
 
-	fileDialogRect := rl.Rectangle{(f.origin.x * screenWidth),
-		(f.origin.y * screenHeight),
-		(f.size.x * screenWidth),
-		(f.size.y * screenHeight)}
+	//draw the file dialog
+	fileDialogRect := rl.Rectangle{(frame.X),
+		(frame.Y),
+		(frame.Width),
+		(frame.Height)}
 
 	minY := int(fileDialogRect.Y)
 	rem := int(fileDialogRect.Height) % f.entrySize
@@ -163,7 +173,7 @@ func (f *FileLoadLayer) updateSelectedEntry() {
 		f.selectedEntry = -1
 	} else {
 		idx := int(f.scrollVal) + (int(inDialogY) / f.entrySize)
-		if(idx <= len(f.fileEntries)){
+		if idx <= len(f.fileEntries) {
 			f.selectedEntry = int(f.scrollVal) + (int(inDialogY) / f.entrySize)
 		} else {
 			f.selectedEntry = -1
@@ -187,9 +197,9 @@ func (f *FileLoadLayer) processClicks() error {
 				f.workingDir = f.workingDir + "/" + entry.Name()
 				f.scrollVal = 0
 			} else {
-				//try to load this file
+				//run the callback on the file path and remove this layer
 				f.fileToLoad = f.workingDir + "/" + entry.Name()
-				PopLayer(f.layerStack)
+				f.ltNode.Remove()
 				f.callback(f.fileToLoad)
 			}
 		} else {
