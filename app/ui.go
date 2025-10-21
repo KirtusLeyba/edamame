@@ -77,11 +77,31 @@ func (u *UILayer) OnRender() {
 		for _, child := range u.ltNode.Children {
 			value, isType := child.Data.(*NetworkLayer)
 			if isType {
-				value.RunningLayout = !value.RunningLayout
+				value.StartLayout = true
 			}
 		}
 	}
 
+	export := u.drawExportButton()
+	if export && u.currentState == UIMain {
+		//TODO: Make these options the user can select
+		var imgSize uint = 8192
+		var nodeScale float32 = 4.0
+		var spaceScale float32 = 2.0
+		var edgeScale float32 = 4.0
+
+		img := rl.GenImageColor(int(imgSize), int(imgSize), rl.White)
+
+		for _, child := range u.ltNode.Children {
+			value, isType := child.Data.(*NetworkLayer)
+			if isType {
+				value.DrawEdgesImage(img, imgSize, imgSize, edgeScale, spaceScale)
+				value.DrawNodesImage(img, imgSize, imgSize, nodeScale, spaceScale)
+			}
+		}
+
+		rl.ExportImage(*img, "result.png")
+	}
 }
 
 func (u *UILayer) drawStats() {
@@ -160,6 +180,26 @@ func (u *UILayer) drawRunLayoutButton() bool {
 
 	runLayoutPressed := gui.Button(rl.Rectangle{buttonOrigin.X, buttonOrigin.Y, buttonSize.X, buttonSize.Y}, "Toggle Layout")
 	return runLayoutPressed
+}
+
+func (u *UILayer) drawExportButton() bool {
+	screenWidth := float32(rl.GetScreenWidth())
+	screenHeight := float32(rl.GetScreenHeight())
+
+	pixelOrigin := Vec2Di{int(u.origin.X * screenWidth), int(u.origin.Y * screenHeight)}
+	pixelSize := Vec2Di{int(u.size.X * screenWidth), int(u.size.Y * screenHeight)}
+	infoBoxOrigin := Vec2Df32{float32(pixelOrigin.X) + 0.025*float32(pixelSize.X),
+		float32(pixelOrigin.Y) + 0.05*float32(pixelSize.Y)}
+	infoBoxSize := Vec2Df32{0.15 * float32(pixelSize.X),
+		0.9 * float32(pixelSize.Y)}
+
+	buttonOrigin := Vec2Df32{X: infoBoxOrigin.X + 0.1*infoBoxSize.X,
+		Y: infoBoxOrigin.Y + 0.35*infoBoxSize.Y}
+	buttonSize := Vec2Df32{X: 0.8 * infoBoxSize.X,
+		Y: 0.05 * infoBoxSize.Y}
+
+	exportPressed := gui.Button(rl.Rectangle{buttonOrigin.X, buttonOrigin.Y, buttonSize.X, buttonSize.Y}, "Export Image")
+	return exportPressed
 }
 
 func (u *UILayer) SetTransform(origin, size Vec2Df32) {

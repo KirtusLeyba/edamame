@@ -2,11 +2,14 @@ import networkx as nx
 import pandas as pd
 
 
-n = 250
-p = 0.005
+n = 20000
+p = 0.00001
 
 
 G = nx.erdos_renyi_graph(n, p)
+
+print("Saving random graph with {} nodes and {} edges...".format(len(G.nodes()), len(G.edges())))
+
 with open("./sample_data/random_nodes.csv", "w") as fp:
     fp.write("name,radius,r,g,b,a\n")
     for node in G.nodes():
