@@ -27,7 +27,7 @@ type HeadlessLayer struct {
 	opt                                                        *EdamameOptions
 	Net                                                        *ednet.SpatialNet
 	SpringConstant, StepSize, Equilibrium, Repulsion, Friction float32
-	currentIteration                                           int
+	currentIteration, lastIteration                            int
 	MaxIters                                                   int
 	MaxWorkers                                                 uint
 	finished                                                   bool
@@ -44,6 +44,9 @@ func (hl *HeadlessLayer) OnCreate() {
 		hl.opt.EdgeFilePath)
 	hl.loadNodeData(hl.opt.NodeFilePath)
 	hl.loadEdgeData(hl.opt.EdgeFilePath)
+
+	hl.currentIteration = 0
+	hl.lastIteration = 0
 
 	logHeadless("Computing layout")
 	hl.finished = false
@@ -77,13 +80,20 @@ func (hl *HeadlessLayer) OnRemove() {
 }
 func (hl *HeadlessLayer) OnEvent() {}
 func (hl *HeadlessLayer) OnUpdate() {
-	logHeadless("Current iteration: " + strconv.FormatInt(int64(hl.currentIteration), 10))
+
+	if(hl.currentIteration != hl.lastIteration){
+		hl.lastIteration = hl.currentIteration
+		if(hl.lastIteration % 50 == 0){
+			progress := float64(hl.lastIteration) / float64(hl.MaxIters)
+			logHeadless("Progress: " + strconv.FormatFloat(progress,'f', 4, 64))
+		}
+	}
 	if hl.finished {
 		hl.ltNode.Remove()
 	}
 }
-func (hl *HeadlessLayer) OnRender()                          {}
-func (hl *HeadlessLayer) SetLTNode(ltNode *LayerTreeNode)    {
+func (hl *HeadlessLayer) OnRender() {}
+func (hl *HeadlessLayer) SetLTNode(ltNode *LayerTreeNode) {
 	hl.ltNode = ltNode
 }
 func (hl *HeadlessLayer) SetTransform(origin, size Vec2Df32) {}
