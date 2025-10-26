@@ -26,6 +26,7 @@ func main() {
 	flag.StringVar(&opt.OutputFilePath, "outputFilePath", "", "File path to save result in headless mode")
 	flag.IntVar(&opt.MaxWorkers, "maxWorkers", 1, "Number of go routines to use to generate layout")
 	flag.IntVar(&opt.MaxIters, "maxIters", 1, "Number of iterations in the layout algorithm")
+	flag.Float64Var(&opt.Repulsion, "repulsion", 80, "Repulsive force")
 	flag.Parse()
 
 	if !opt.Headless {
