@@ -10,6 +10,7 @@ type EdamameOptions struct{
 	Headless bool
 	NodeFilePath, EdgeFilePath, OutputFilePath string
 	MaxWorkers, MaxIters int
+	Repulsion float64
 }
 
 func Execute(defaultWidth, defaultHeight int32) {
@@ -44,7 +45,7 @@ func ExecuteHeadless(opt *EdamameOptions){
 	var headless HeadlessLayer
 	headless.opt = opt
 	headless.Equilibrium = 8.0
-	headless.Repulsion = 80.0
+	headless.Repulsion = float32(opt.Repulsion)
 	headless.SpringConstant = 0.1
 	headless.StepSize = 0.1
 	headless.Friction = 0.125
