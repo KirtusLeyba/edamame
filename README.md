@@ -5,7 +5,7 @@ Network visualization using golang and raylib.
 ```bash
 git clone https://github.com/KirtusLeyba/edamame
 cd edamame
-go build .
+make
 ```
 
 ### Installing in the go workspace
