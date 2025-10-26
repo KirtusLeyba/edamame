@@ -1,7 +1,7 @@
 package app
 
 import (
-	ednet "edamame/core/networks"
+	ednet "github.com/KirtusLeyba/edamame/core/networks"
 	// "strconv"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )

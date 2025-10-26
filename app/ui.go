@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	ednet "edamame/core/networks"
+	ednet "github.com/KirtusLeyba/edamame/core/networks"
 	gui "github.com/gen2brain/raylib-go/raygui"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )

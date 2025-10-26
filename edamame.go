@@ -1,7 +1,7 @@
 package main
 
 import (
-	"edamame/app"
+	"github.com/KirtusLeyba/edamame/app"
 	"flag"
 	"os"
 )
