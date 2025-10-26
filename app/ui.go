@@ -235,7 +235,7 @@ func (u *UILayer) loadNodeData(fname string) {
 	// A,1.0,40,94,150,255
 
 	for _, netLayer := range netLayers {
-		netLayer.Net = ednet.NewNetwork()
+		netLayer.Net = ednet.NewSpatialNet()
 		for lineIDX, record := range records {
 			//skip the header
 			if lineIDX == 0 {
@@ -249,34 +249,28 @@ func (u *UILayer) loadNodeData(fname string) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			r, err := strconv.ParseUint(record[2], 10, 8)
-			if err != nil {
-				log.Fatal(err)
-			}
-			g, err := strconv.ParseUint(record[3], 10, 8)
-			if err != nil {
-				log.Fatal(err)
-			}
-			b, err := strconv.ParseUint(record[4], 10, 8)
-			if err != nil {
-				log.Fatal(err)
-			}
-			a, err := strconv.ParseUint(record[5], 10, 8)
-			if err != nil {
-				log.Fatal(err)
-			}
-			rx := (100.0 * rand.Float32()) - 50.0
-			ry := (100.0 * rand.Float32()) - 50.0
-			nodeColor := ednet.RGBA{R: uint8(r),
-				G: uint8(g),
-				B: uint8(b),
-				A: uint8(a)}
-			node := ednet.Node{Name: name,
-				Radius:    float32(radius),
-				NodeColor: nodeColor,
-				X:         rx,
-				Y:         ry}
-			netLayer.Net.AddNode(node)
+			//TODO: Store color data
+			// r, err := strconv.ParseUint(record[2], 10, 8)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			// g, err := strconv.ParseUint(record[3], 10, 8)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			// b, err := strconv.ParseUint(record[4], 10, 8)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			// a, err := strconv.ParseUint(record[5], 10, 8)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			netLayer.Net.AddNode(name)
+			var node *ednet.SpatialNetNode = &netLayer.Net.NodeSlice[len(netLayer.Net.NodeSlice) - 1]
+			node.X = (100.0 * rand.Float32()) - 50.0
+			node.Y = (100.0 * rand.Float32()) - 50.0
+			node.Radius = float32(radius)
 		}
 	}
 }
@@ -303,11 +297,11 @@ func (u *UILayer) loadEdgeData(fname string) {
 
 	for _, netLayer := range netLayers {
 
-		netLayer.Net.Adjacencies = make(map[string][]string)
-		netLayer.Net.EdgeCount = 0
-		netLayer.Net.EdgeSet = make(map[string]uint)
-		netLayer.Net.Edges = make([]ednet.Edge, 0)
-
+		//Reset edge data in the SpatialNet
+		netLayer.Net.Adjacencies = make(ednet.EdgeSet)
+		for _, node := range netLayer.Net.NodeSlice{
+			netLayer.Net.Adjacencies[node.Name] = make(map[string]struct{})
+		}
 		for lineIDX, record := range records {
 			//skip the header
 			if lineIDX == 0 {
@@ -318,13 +312,12 @@ func (u *UILayer) loadEdgeData(fname string) {
 			}
 			nameA := record[0]
 			nameB := record[1]
-			width, err := strconv.ParseFloat(record[2], 32)
-			if err != nil {
-				log.Fatal(err)
-			}
-			edge := ednet.SortedEdge(nameA, nameB)
-			edge.Width = float32(width)
-			netLayer.Net.AddEdge(edge)
+			//TODO: Store edge width
+			// width, err := strconv.ParseFloat(record[2], 32)
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			netLayer.Net.AddEdge(nameA, nameB)
 		}
 	}
 }

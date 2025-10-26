@@ -45,6 +45,18 @@ func NewSpatialNet() *SpatialNet {
 		Adjacencies: make(map[string]map[string]struct{})}
 }
 
+func (n *SpatialNet) GetCOM() (float32, float32) {
+	var cx, cy float32
+
+	for _, node := range n.NodeSlice {
+		cx += node.X
+		cy += node.Y
+	}
+	cx /= float32(len(n.NodeSlice))
+	cy /= float32(len(n.NodeSlice))
+	return cx, cy
+}
+
 func (n *SpatialNet) ContainsNode(nodeName string) bool {
 	_, exists := n.NodeIndeces[nodeName]
 	return exists
@@ -144,11 +156,20 @@ func (n *SpatialNet) SpringUpdateParallel(k,
 	stepSize,
 	equilibriumDist,
 	repulsion,
-	friction float32) {
+	friction float32,
+	maxWorkers uint) {
 
-	var wg sync.WaitGroup
-	for i := range len(n.NodeSlice) {
-		wg.Go(func() {
+	actualWorkers := maxWorkers
+	if(len(n.NodeSlice) < int(actualWorkers)){
+		actualWorkers = uint(len(n.NodeSlice))
+	}
+
+	var wg = &sync.WaitGroup{}
+	queue := make(chan int, actualWorkers)
+
+	worker := func(wg *sync.WaitGroup, queue chan int) {
+		defer wg.Done()
+		for i := range queue {
 			var fx, fy float32 = 0.0, 0.0
 			for j := range len(n.NodeSlice) {
 				if i == j {
@@ -173,14 +194,25 @@ func (n *SpatialNet) SpringUpdateParallel(k,
 			}
 			n.NodeSlice[i].Vx += stepSize * fx
 			n.NodeSlice[i].Vy += stepSize * fy
-		})
+		}
 	}
+
+	for range actualWorkers {
+		wg.Add(1)
+		go worker(wg, queue)
+	}
+	for i := range n.NodeSlice {
+		queue <- i
+	}
+	close(queue)
 	wg.Wait()
 
 	for i := range len(n.NodeSlice) {
 		wg.Go(func() {
 			n.NodeSlice[i].X += stepSize * n.NodeSlice[i].Vx
 			n.NodeSlice[i].Y += stepSize * n.NodeSlice[i].Vy
+			n.NodeSlice[i].Vx -= stepSize*friction*n.NodeSlice[i].Vx
+			n.NodeSlice[i].Vy -= stepSize*friction*n.NodeSlice[i].Vy
 		})
 	}
 	wg.Wait()
@@ -352,14 +384,14 @@ func (n *SpatialNet) SpringUpdateHashingParallel(k,
 	wg.Wait()
 
 	//TODO: Nodes moving from bin to bin
-	for i := range len(n.NodeSlice) {
-		wg.Go(func() {
-			oldBin := n.NodeSlice[i].GetBin()
-			n.NodeSlice[i].X += stepSize * n.NodeSlice[i].Vx
-			n.NodeSlice[i].Y += stepSize * n.NodeSlice[i].Vy
-			newBin := n.NodeSlice[i].GetBin()
-			n.SpatialBins[oldBin]
-		})
-	}
+	// for i := range len(n.NodeSlice) {
+	// 	wg.Go(func() {
+	// 		oldBin := n.NodeSlice[i].GetBin()
+	// 		n.NodeSlice[i].X += stepSize * n.NodeSlice[i].Vx
+	// 		n.NodeSlice[i].Y += stepSize * n.NodeSlice[i].Vy
+	// 		newBin := n.NodeSlice[i].GetBin()
+	// 		n.SpatialBins[oldBin]
+	// 	})
+	// }
 	wg.Wait()
 }

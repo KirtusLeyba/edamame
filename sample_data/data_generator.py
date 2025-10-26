@@ -1,11 +1,13 @@
 import networkx as nx
 import pandas as pd
+import sys
 
+if len(sys.argv) != 3:
+    print("Usage:\npython data_generator.py <n> <p>")
+    sys.exit(0)
 
-n = 20000
-p = 0.00001
-
-
+n = int(sys.argv[1])
+p = float(sys.argv[2])
 G = nx.erdos_renyi_graph(n, p)
 
 print("Saving random graph with {} nodes and {} edges...".format(len(G.nodes()), len(G.edges())))

@@ -20,12 +20,14 @@ func Execute(defaultWidth, defaultHeight int32) {
 	//add the netviz layer
 	var netLayer  NetworkLayer
 	netLayer.SetTransform(Vec2Df32{0.1, 0.1}, Vec2Df32{0.8, 0.8})
-	netLayer.EquilCon = 50.0
-	netLayer.EquilDis = 4.0
-	netLayer.SpringConstant = 3.0
-	netLayer.TimeStep = 0.1
-	netLayer.Friction = 0.001
-	netLayer.Net = ednet.NewNetwork()
+	netLayer.Equilibrium = 8.0
+	netLayer.Repulsion = 80.0
+	netLayer.SpringConstant = 0.1
+	netLayer.StepSize = 0.1
+	netLayer.Friction = 0.125
+	netLayer.MaxIters = 100
+	netLayer.MaxWorkers = 10
+	netLayer.Net = ednet.NewSpatialNet()
 	root.AddChild(&netLayer)
 
 	mainLoop(root)
