@@ -43,4 +43,4 @@ edamame -headless\
 
 ### Licence
 edamame is open-source software licensed according to the MIT license.
-See [license](https://github.com/KirtusLeyba/edamame/LICENSE)
+See [license](https://github.com/KirtusLeyba/edamame/blob/main/LICENSE)
