@@ -2,8 +2,6 @@ module edamame/app
 
 go 1.25.1
 
-replace edamame/core => ../core
-
 require (
 	edamame/core v0.0.0-00010101000000-000000000000
 	github.com/ebitengine/purego v0.7.1

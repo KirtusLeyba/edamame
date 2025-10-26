@@ -2,10 +2,6 @@ module edamame
 
 go 1.25.1
 
-replace edamame/core => ./core
-
-replace edamame/app => ./app
-
 require (
 	edamame/app v0.0.0-00010101000000-000000000000 // indirect
 	edamame/core v0.0.0-00010101000000-000000000000 // indirect
