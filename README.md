@@ -5,19 +5,22 @@ Network visualization using golang and raylib.
 ```bash
 git clone https://github.com/KirtusLeyba/edamame
 cd edamame
+# Get the raylib-go bindings if you don't have them
+go get github.com/gen2brain/raylib-go/raygui
+# compile
 make
 ```
 
 ### Installing in the go workspace
 ```bash
-go install https://github.com/KirtusLeyba/edamame
+go install github.com/KirtusLeyba/edamame
 ```
 
 ### Interactive Mode
 Recommended for networks with < 2000 nodes.
 Use the GUI in interactive mode:
 ```bash
-./edamame
+edamame
 ```
 
 <!--	Headless bool
@@ -28,7 +31,7 @@ Use the GUI in interactive mode:
 ### Headless Mode
 Use headless mode with large networks (> 2000 nodes).
 ```bash
-./edamame -headless -nodeFilePath path-to-node-csv -edgeFilePath path-to-edge-csv -outputFilePath path-to-save-img -maxWorkers number-of-go-routines-to-use -maxIters number-of-iters-for-layout-algorithm -repulsion repulsive-force-in-layout-algorithm
+edamame -headless -nodeFilePath path-to-node-csv -edgeFilePath path-to-edge-csv -outputFilePath path-to-save-img -maxWorkers number-of-go-routines-to-use -maxIters number-of-iters-for-layout-algorithm -repulsion repulsive-force-in-layout-algorithm
 ```
 
 ### Licence
