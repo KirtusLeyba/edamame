@@ -1,4 +1,4 @@
-module edamame/app
+module github.com/KirtusLeyba/edamame/app
 
 go 1.25.1
 
