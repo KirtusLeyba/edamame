@@ -31,17 +31,18 @@ type LayerTreeNode struct {
 	Data     Layer
 	Children []*LayerTreeNode
 	Parent   *LayerTreeNode
+	Removed  bool
 }
 
 func NewRootLayerTreeNode(rootData Layer) *LayerTreeNode {
-	var result = LayerTreeNode{TreeSize: 1, UniqueID: 1, Data: rootData, Parent: nil}
+	var result = LayerTreeNode{TreeSize: 1, UniqueID: 1, Data: rootData, Parent: nil, Removed: false}
 	result.Data.SetLTNode(&result)
 	result.Data.OnCreate()
 	return &result
 }
 
 func NewChildLayerTreeNode(parent *LayerTreeNode, data Layer, uniqueID uint) *LayerTreeNode {
-	var result = LayerTreeNode{TreeSize: 1, UniqueID: uniqueID, Data: data, Parent: parent}
+	var result = LayerTreeNode{TreeSize: 1, UniqueID: uniqueID, Data: data, Parent: parent, Removed: false}
 	result.Data.SetLTNode(&result)
 	result.Data.OnCreate()
 	return &result
@@ -71,23 +72,28 @@ func (ltNode *LayerTreeNode) AddChild(childData Layer) {
  * Remove a ltNode by recursively removing it's children.
  */
 func (ltNode *LayerTreeNode) Remove() {
-	for _, child := range ltNode.Children {
-		child.Remove()
+	if(ltNode.Children != nil){
+		for _, child := range ltNode.Children {
+			child.Remove()
+		}
 	}
+
 	ltNode.DecrementTreeSize()
 	ltNode.Data.OnRemove()
 	ltNode.Children = nil
 
-	if(ltNode.Parent != nil){
+	if ltNode.Parent != nil {
 		parent := ltNode.Parent
 		var newChildren []*LayerTreeNode
 		for _, child := range parent.Children {
-			if(child.UniqueID != ltNode.UniqueID){
+			if child.UniqueID != ltNode.UniqueID {
 				newChildren = append(newChildren, child)
 			}
 		}
 		parent.Children = newChildren
 	}
+
+	ltNode.Removed = true
 }
 
 func (ltNode *LayerTreeNode) RemoveChildWithID(uniqueID uint) error {

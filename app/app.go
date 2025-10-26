@@ -6,6 +6,12 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type EdamameOptions struct{
+	Headless bool
+	NodeFilePath, EdgeFilePath, OutputFilePath string
+	MaxWorkers, MaxIters int
+}
+
 func Execute(defaultWidth, defaultHeight int32) {
 
 	initWindow(defaultWidth, defaultHeight)
@@ -34,6 +40,22 @@ func Execute(defaultWidth, defaultHeight int32) {
 	exitApp(root)
 }
 
+func ExecuteHeadless(opt *EdamameOptions){
+	var headless HeadlessLayer
+	headless.opt = opt
+	headless.Equilibrium = 8.0
+	headless.Repulsion = 80.0
+	headless.SpringConstant = 0.1
+	headless.StepSize = 0.1
+	headless.Friction = 0.125
+	headless.MaxIters = opt.MaxIters
+	headless.MaxWorkers = uint(opt.MaxWorkers)
+	headless.Net = ednet.NewSpatialNet()
+
+	root := NewRootLayerTreeNode(&headless)
+	mainLoopHeadless(root)
+}
+
 func initWindow(width, height int32){
 	rl.SetConfigFlags(rl.FlagWindowResizable)
 	rl.InitWindow(width, height, "edamame")
@@ -53,4 +75,11 @@ func mainLoop(root *LayerTreeNode){
 
 func exitApp(root *LayerTreeNode){
 	root.Remove()
+}
+
+func mainLoopHeadless(root *LayerTreeNode){
+	for !root.Removed {
+		root.UpdateTree()
+		root.RenderTree()
+	}
 }
