@@ -32,13 +32,13 @@ edamame
 ### Headless Mode
 Use headless mode with large networks (> 2000 nodes).
 ```bash
-edamame -headless\
-        -nodeFilePath path-to-node-csv\
-        -edgeFilePath path-to-edge-csv\
-        -outputFilePath path-to-save-img\
-        -maxWorkers number-of-go-routines-to-use\
-        -maxIters number-of-iters-for-layout-algorithm\
-        -repulsion repulsive-force-in-layout-algorithm
+edamame -headless \
+-nodeFilePath path-to-node-csv \
+-edgeFilePath path-to-edge-csv \
+-outputFilePath path-to-save-img \
+-maxWorkers number-of-go-routines-to-use \
+-maxIters number-of-iters-for-layout-algorithm \
+-repulsion repulsive-force-in-layout-algorithm
 ```
 
 ### Licence
