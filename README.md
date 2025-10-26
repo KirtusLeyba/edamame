@@ -1,6 +1,10 @@
 # edamame
 Network visualization using golang and raylib.
 
+### Screenshots
+Example using an Erdos-Renyi random graph:
+![random graph example](https://github.com/KirtusLeyba/edamame/blob/main/edamame_screenshot.png)
+
 ### building from source
 ```bash
 git clone https://github.com/KirtusLeyba/edamame
@@ -11,9 +15,9 @@ go get github.com/gen2brain/raylib-go/raygui
 make
 ```
 
-### Installing in the go workspace
+### Installing the latest version with go install
 ```bash
-go install github.com/KirtusLeyba/edamame
+go install github.com/KirtusLeyba/edamame@latest
 ```
 
 ### Interactive Mode
@@ -22,11 +26,6 @@ Use the GUI in interactive mode:
 ```bash
 edamame
 ```
-
-<!--	Headless bool
-	NodeFilePath, EdgeFilePath, OutputFilePath string
-	MaxWorkers, MaxIters int
-	Repulsion float64-->
 
 ### Headless Mode
 Use headless mode with large networks (> 2000 nodes).
