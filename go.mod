@@ -1,4 +1,4 @@
-module github.com/KirtusLeyba/edamame
+module github.com/KirtusLeyba/edamame v0.0.1
 
 go 1.25.1
 
