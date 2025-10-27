@@ -99,7 +99,7 @@ func (nl *NetworkLayer) drawEdges() {
 }
 
 func (nl *NetworkLayer) drawNodes() {
-	edamameGreen := rl.Color(62, 185, 59, 255)
+	edamameGreen := rl.Color{62, 185, 59, 255}
 	frame := nl.ltNode.GetFrame()
 	cx, cy := nl.Net.GetCOM()
 	com := Vec2Df32{cx, cy}

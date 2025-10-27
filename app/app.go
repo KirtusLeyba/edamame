@@ -64,7 +64,7 @@ func initWindow(width, height int32){
 
 func mainLoop(root *LayerTreeNode){
 
-	edamameGray := rl.Color(94, 94, 94, 94)
+	edamameGray := rl.Color{94, 94, 94, 94}
 
 	for !rl.WindowShouldClose() {
 		root.UpdateTree()
