@@ -99,6 +99,7 @@ func (nl *NetworkLayer) drawEdges() {
 }
 
 func (nl *NetworkLayer) drawNodes() {
+	edamameGreen := rl.Color(62, 185, 59, 255)
 	frame := nl.ltNode.GetFrame()
 	cx, cy := nl.Net.GetCOM()
 	com := Vec2Df32{cx, cy}
@@ -109,7 +110,7 @@ func (nl *NetworkLayer) drawNodes() {
 		cameraCenter := Vec2Df32{frame.X + frame.Width/2, frame.Y + frame.Height/2}
 		posAdjusted.X = cameraCenter.X + posAdjusted.X
 		posAdjusted.Y = cameraCenter.Y + posAdjusted.Y
-		nodeColor := rl.NewColor(0, 0, 255, 255)
+		nodeColor := edamameGreen
 		rl.DrawTexture(nl.NodeTexture.Texture, int32(posAdjusted.X), int32(posAdjusted.Y), nodeColor)
 	}
 }
