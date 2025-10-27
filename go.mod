@@ -1,9 +1,8 @@
-module github.com/KirtusLeyba/edamame/v0.0.1
+module github.com/KirtusLeyba/edamame
 
 go 1.25.1
 
 require (
-	github.com/KirtusLeyba/edamame v0.0.0-20251026172717-7c213d43cdfb
 	github.com/gen2brain/raylib-go/raygui v0.0.0-20250925154813-cab7881fba7a
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20241202103652-5d50abe7c65b
 )
