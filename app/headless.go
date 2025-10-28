@@ -1,8 +1,8 @@
 package app
 
 import (
-	ednet "github.com/KirtusLeyba/edamame/core/networks"
 	"encoding/csv"
+	ednet "github.com/KirtusLeyba/edamame/core/networks"
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"log"
 	"math/rand"
@@ -77,15 +77,41 @@ func (hl *HeadlessLayer) OnRemove() {
 	hl.DrawNodesImage(img, imgSize, imgSize, nodeScale, spaceScale)
 	rl.ExportImage(*img, hl.opt.OutputFilePath)
 	logHeadless("go routine finished layout iterations")
+
+	//write the node positions to a csv file for reuse
+	//TODO: Add option to name file
+	fp, err := os.Create("./node_positions.csv")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fp.Close()
+
+	_, err = fp.WriteString("node,x,y\n")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fp.Sync()
+
+	for _, node := range hl.Net.NodeSlice {
+		_, err = fp.WriteString(node.Name + "," +
+			strconv.FormatFloat(float64(node.X), 'f', 4, 64) +
+			strconv.FormatFloat(float64(node.Y), 'f', 4, 64) + "\n")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fp.Sync()
+	}
+	logHeadless("Wrote ./node_positions.csv")
 }
+
 func (hl *HeadlessLayer) OnEvent() {}
 func (hl *HeadlessLayer) OnUpdate() {
 
-	if(hl.currentIteration != hl.lastIteration){
+	if hl.currentIteration != hl.lastIteration {
 		hl.lastIteration = hl.currentIteration
-		if(hl.lastIteration % 50 == 0){
+		if hl.lastIteration%50 == 0 {
 			progress := float64(hl.lastIteration) / float64(hl.MaxIters)
-			logHeadless("Progress: " + strconv.FormatFloat(progress,'f', 4, 64))
+			logHeadless("Progress: " + strconv.FormatFloat(progress, 'f', 4, 64))
 		}
 	}
 	if hl.finished {
@@ -220,6 +246,7 @@ func (hl *HeadlessLayer) DrawEdgesImage(img *rl.Image, width, height uint, edgeS
 				int32(edgeWidth), rl.Black)
 		}
 	}
+
 }
 
 func (hl *HeadlessLayer) DrawNodesImage(img *rl.Image, width, height uint, nodeScale, spaceScale float32) {
