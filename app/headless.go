@@ -94,14 +94,14 @@ func (hl *HeadlessLayer) OnRemove() {
 
 	for _, node := range hl.Net.NodeSlice {
 		_, err = fp.WriteString(node.Name + "," +
-			strconv.FormatFloat(float64(node.X), 'f', 4, 64) +
+			strconv.FormatFloat(float64(node.X), 'f', 4, 64) + "," +
 			strconv.FormatFloat(float64(node.Y), 'f', 4, 64) + "\n")
 		if err != nil {
 			log.Fatal(err)
 		}
 		fp.Sync()
 	}
-	logHeadless("Wrote ./node_positions.csv")
+	logHeadless("Wrote ./node_positions.csv to file!")
 }
 
 func (hl *HeadlessLayer) OnEvent() {}
